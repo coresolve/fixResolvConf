@@ -1,46 +1,57 @@
-apiVersion: "extensions/v1beta1"
+apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: fix-resolv
-  namespace: fix-resolv
+  creationTimestamp: null
   labels:
     app: fix-resolv
+  name: fix-resolv
+  namespace: fix-resolv
 spec:
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
-    type: RollingUpdate
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: fix-resolv
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: fix-resolv
     spec:
       containers:
-      - name: fix-resolv
-        image: quay.io/dcooley/fixresolv:2.7
-        imagePullPolicy: Always
-        env:
+      - env:
         - name: MY_NODE_NAME
           valueFrom:
             fieldRef:
+              apiVersion: v1
               fieldPath: spec.nodeName
         - name: SEARCH
-          value: "mauilion.com"
+          value: mauilion.com
+        image: quay.io/dcooley/fixresolvconf:0.1
+        imagePullPolicy: Always
+        name: fix-resolv
         volumeMounts:
         - mountPath: /mnt/etc
           name: node-etc
-          readOnly: false
-        dnsPolicy: Default
-      serviceAccountName: fix-resolv
-      tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Exists"
-      - key: "node-role.kubernetes.io/node"
-        operator: "Exists"
-        effect: "NoSchedule"
+      dnsPolicy: Default
       nodeSelector:
         node-role.kubernetes.io/node: ""
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccount: fix-resolv
+      serviceAccountName: fix-resolv
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/node
+        operator: Exists
       volumes:
-      - name: node-etc
-        hostPath:
+      - hostPath:
           path: /etc/
+          type: ""
+        name: node-etc
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
