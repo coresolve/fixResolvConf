@@ -1,16 +1,16 @@
-#!/bin/sh
+#!/bin/bash -x
 
-addSearchPath="$SEARCH:-coreos.com"
+addSearchPath="${SEARCH:-coreos.com}"
 
 kubeletString="/etc/kubernetes/resolv.conf"
 
 function fixresolvconf {
 echo "$(date) checking resolv.conf to see if the search string has already been appended"
-if grep ^$addSearchPath /etc/resolv.conf
+if grep " $addSearchPath" /etc/resolv.conf
 then
 	echo "$(date) resolv.conf has already been updated"
 else
-	sed "/search/s/$/\ $addSearchPath/" /etc/resolv.conf > /mnt/etc/kubernetes/resolv.conf
+	sed "/search/s/$/ $addSearchPath/" /etc/resolv.conf > /mnt/etc/kubernetes/resolv.conf
 	echo "$(date) resolv.conf was updated with $addSearchPath"
 fi
 }
@@ -18,7 +18,7 @@ fi
 function fixkubelet {
 echo "checking kubelet service config to see if the new resolv.conf file is being used"
 
-if grep $kubeletString /etc/kubelet.service
+if grep $kubeletString /mnt/etc/systemd/system/kubelet.service
 then
 	echo "$(date) kubelet.service has already been updated"
 else
