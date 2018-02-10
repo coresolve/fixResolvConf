@@ -41,11 +41,9 @@ spec:
       serviceAccountName: fix-resolv
       terminationGracePeriodSeconds: 30
       tolerations:
-      - key: CriticalAddonsOnly
+      - key: node-role.kubernetes.io/master
         operator: Exists
-      - effect: NoSchedule
-        key: node-role.kubernetes.io/node
-        operator: Exists
+        effect: NoSchedule
       volumes:
       - hostPath:
           path: /etc/
